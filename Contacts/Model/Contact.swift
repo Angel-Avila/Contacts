@@ -16,7 +16,7 @@ struct Contact: Equatable {
     var phoneNumbers: [String]
     var emails: [String]
     
-    init(firstName: String, lastName: String, dateOfBirth: String, addresses: [String], phoneNumbers: [String], emails: [String]) {
+    init(firstName: String, lastName: String, dateOfBirth: String = "", addresses: [String] = [String](), phoneNumbers: [String] = [String](), emails: [String] = [String]()) {
         self.firstName = firstName
         self.lastName = lastName
         self.dateOfBirth = dateOfBirth

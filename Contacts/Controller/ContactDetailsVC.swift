@@ -21,6 +21,8 @@ class ContactDetailsVC: UIViewController {
     
     weak var viewController: ViewController!
     
+    var alertController = UIAlertController(nibName: nil, bundle: nil)
+    
     lazy var scrollView: UIScrollView! = {
         let sv = UIScrollView()
         sv.translatesAutoresizingMaskIntoConstraints = false
@@ -71,6 +73,54 @@ class ContactDetailsVC: UIViewController {
         tf.placeholder = "Last Name"
         tf.delegate = self
         return tf
+    }()
+    
+    lazy var dateOfBirthLabel: UILabel! = {
+        let label = UILabel()
+        label.text = "Date of birth"
+        label.font = UIFont(name: "AvenirNext-DemiBold", size: 17)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    lazy var dateOfBirthTextField: UITextField! = {
+        let tf = UITextField()
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        tf.textColor = UIColor(white: 0.4, alpha: 1)
+        tf.placeholder = "MMMM d, yyyy"
+        tf.delegate = self
+        return tf
+    }()
+    
+    lazy var dateOfBirthPicker: UIDatePicker! = {
+        let picker = UIDatePicker()
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.datePickerMode = .date
+        return picker
+    }()
+    
+    lazy var addressesLabel: UILabel! = {
+        let label = UILabel()
+        label.text = "Addresses"
+        label.font = UIFont(name: "AvenirNext-DemiBold", size: 17)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    lazy var addressesTableView: UITableView! = {
+        let tv = UITableView()
+        tv.translatesAutoresizingMaskIntoConstraints = false
+        tv.showsVerticalScrollIndicator = false
+        tv.showsHorizontalScrollIndicator = false
+        
+        tv.dataSource = self
+        tv.delegate = self
+        
+        tv.layer.borderColor = UIColor.darkGray.cgColor
+        tv.layer.borderWidth = 2
+        tv.layer.cornerRadius = 5
+        
+        return tv
     }()
     
     lazy var phoneNumbersLabel: UILabel! = {
@@ -157,6 +207,7 @@ class ContactDetailsVC: UIViewController {
         setupNavigationController()
         setupBackButton()
         setupAddButton()
+        setupDateOfBirthViews()
         setupViewUI()
         setupInfoFromContact()
     }
@@ -169,7 +220,7 @@ class ContactDetailsVC: UIViewController {
     
     @objc fileprivate func saveButtonTapped() {
 
-        let newContact = Contact(firstName: firstNameTextField.text!, lastName: lastNameTextField.text!, phoneNumbers: contact.phoneNumbers, emails: contact.emails)
+        let newContact = Contact(firstName: firstNameTextField.text!, lastName: lastNameTextField.text!, dateOfBirth: dateOfBirthTextField.text!, addresses: contact.addresses, phoneNumbers: contact.phoneNumbers, emails: contact.emails)
         
         if isAddingAContact {
             
@@ -199,63 +250,81 @@ class ContactDetailsVC: UIViewController {
         
         let alert = UIAlertController(title: "What do you want to add?", message: "Please, choose one.", preferredStyle: .alert)
         
-        
+        alert.addAction(UIAlertAction(title: "Address", style: .default, handler: { _ in
+            self.addAnAddress()
+        }))
         
         alert.addAction(UIAlertAction(title: "Phone number", style: .default, handler: { _ in
-            
-            let alert = UIAlertController(title: "Type the phone number here", message: nil, preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-            
-            alert.addTextField(configurationHandler: { textField in
-                textField.placeholder = "Phone number"
-            })
-            
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
-                
-                if let number = alert.textFields?.first?.text {
-                    self.contact.phoneNumbers.append(number)
-                    let set = IndexSet(integersIn: 0...0)
-                    self.phoneNumberTableView.reloadSections(set, with: .fade)
-                }
-            }))
-            
-            self.present(alert, animated: true)
-            
+            self.addAPhoneNumber()
         }))
-        
-        
-        
         
         alert.addAction(UIAlertAction(title: "Email", style: .default, handler: { _ in
-            
-            let alert = UIAlertController(title: "Type the email here", message: nil, preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-            
-            alert.addTextField(configurationHandler: { textField in
-                textField.placeholder = "Email"
-            })
-            
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
-                
-                if let email = alert.textFields?.first?.text {
-                    self.contact.emails.append(email)
-                    let set = IndexSet(integersIn: 0...0)
-                    self.emailTableView.reloadSections(set, with: .fade)
-                }
-            }))
-            
-            self.present(alert, animated: true)
-            
+            self.addAnEmail()
         }))
-        
-        
-        
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         
         self.present(alert, animated: true)
+    }
+    
+    
+    fileprivate func addSomething(alertTitle: String, placeHolder: String, handler: @escaping (UIAlertAction) -> Void) {
+        alertController = UIAlertController(title: alertTitle, message: nil, preferredStyle: .alert)
+        
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        alertController.addTextField(configurationHandler: { textField in
+            textField.placeholder = placeHolder
+        })
+        
+        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: handler))
+        
+        self.present(alertController, animated: true)
+    }
+    
+    fileprivate func addAPhoneNumber() {
+        
+        addSomething(alertTitle: "Type the phone number here", placeHolder: "Phone number") { _ in
+            
+            if let number = self.alertController.textFields?.first?.text {
+                self.contact.phoneNumbers.append(number)
+                let set = IndexSet(integersIn: 0...0)
+                self.phoneNumberTableView.reloadSections(set, with: .fade)
+            }
+        }
+    }
+    
+    fileprivate func addAnEmail() {
+        
+        addSomething(alertTitle: "Type the email here", placeHolder: "Email") { _ in
+            
+            if let email = self.alertController.textFields?.first?.text {
+                self.contact.emails.append(email)
+                let set = IndexSet(integersIn: 0...0)
+                self.emailTableView.reloadSections(set, with: .fade)
+            }
+        }
+    }
+    
+    fileprivate func addAnAddress() {
+        addSomething(alertTitle: "Type the address here", placeHolder: "Address") { _ in
+            
+            if let address = self.alertController.textFields?.first?.text {
+                self.contact.addresses.append(address)
+                let set = IndexSet(integersIn: 0...0)
+                self.addressesTableView.reloadSections(set, with: .fade)
+            }
+        }
+    }
+    
+    @objc fileprivate func dateOfBirthValueChanged(_ sender: UIDatePicker) {
+        let f = DateFormatter()
+        f.dateFormat = "MMMM d, yyyy"
+        dateOfBirthTextField.text = f.string(from: sender.date)
+    }
+    
+    @objc fileprivate func doneButtonPressed() {
+        view.endEditing(true)
     }
     
     // MARK: - Setup
@@ -290,9 +359,28 @@ class ContactDetailsVC: UIViewController {
         self.navigationItem.rightBarButtonItem = addButton
     }
     
+    fileprivate func setupDateOfBirthViews() {
+        dateOfBirthTextField.inputView = dateOfBirthPicker
+        
+        dateOfBirthPicker.addTarget(self, action: #selector(dateOfBirthValueChanged(_:)), for: .valueChanged)
+        
+        let toolBar = UIToolbar()
+        toolBar.barStyle = .default
+        toolBar.isTranslucent = true
+        toolBar.tintColor = tintColor
+        toolBar.sizeToFit()
+        
+        let doneButton = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(doneButtonPressed))
+        
+        toolBar.setItems([doneButton], animated: false)
+        
+        dateOfBirthTextField.inputAccessoryView = toolBar
+    }
+    
     fileprivate func setupViewUI() {
         phoneNumberTableView.register(StringCell.self, forCellReuseIdentifier: cellId)
         emailTableView.register(StringCell.self, forCellReuseIdentifier: cellId)
+        addressesTableView.register(StringCell.self, forCellReuseIdentifier: cellId)
         
         let padding: CGFloat = 20
         
@@ -307,8 +395,9 @@ class ContactDetailsVC: UIViewController {
         
         phoneNumberTableView.anchorSize(size: CGSize(width: width, height: 200))
         emailTableView.anchorSize(size: CGSize(width: width, height: 200))
+        addressesTableView.anchorSize(size: CGSize(width: width, height: 200))
         
-        [firstNameLabel, firstNameTextField, lastNameLabel, lastNameTextField, phoneNumbersLabel, phoneNumberTableView, emailLabel, emailTableView].forEach { contentStackView.addArrangedSubview($0) }
+        [firstNameLabel, firstNameTextField, lastNameLabel, lastNameTextField, dateOfBirthLabel, dateOfBirthTextField, addressesLabel, addressesTableView, phoneNumbersLabel, phoneNumberTableView, emailLabel, emailTableView].forEach { contentStackView.addArrangedSubview($0) }
         
         scrollView.addSubview(saveButton)
         saveButton.anchor(top: contentStackView.bottomAnchor, leading: nil, bottom: scrollView.bottomAnchor, trailing: nil, padding: UIEdgeInsets(top: padding*2, left: 0, bottom: padding, right: 0), size: CGSize(width: buttonWidth, height: buttonHeight))
@@ -319,6 +408,7 @@ class ContactDetailsVC: UIViewController {
     fileprivate func setupInfoFromContact() {
         firstNameTextField.text = contact.firstName
         lastNameTextField.text = contact.lastName
+        dateOfBirthTextField.text = contact.dateOfBirth
     }
 }
 
@@ -330,6 +420,8 @@ extension ContactDetailsVC: UITableViewDelegate, UITableViewDataSource {
             return contact.phoneNumbers.count
         } else if tableView == emailTableView {
             return contact.emails.count
+        } else if tableView == addressesTableView {
+            return contact.addresses.count
         }
         
         return 0
@@ -343,6 +435,8 @@ extension ContactDetailsVC: UITableViewDelegate, UITableViewDataSource {
            cell.item = contact.phoneNumbers[indexPath.row]
         } else if tableView == emailTableView {
             cell.item = contact.emails[indexPath.row]
+        } else if tableView == addressesTableView {
+            cell.item = contact.addresses[indexPath.row]
         }
         
         return cell
@@ -360,6 +454,9 @@ extension ContactDetailsVC: UITableViewDelegate, UITableViewDataSource {
             
         } else if tableView == emailTableView && indexPath.row < contact.emails.count {
             contact.emails.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .top)
+        } else if tableView == addressesTableView && indexPath.row < contact.addresses.count {
+            contact.addresses.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .top)
         }
     }

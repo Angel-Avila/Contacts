@@ -10,7 +10,9 @@ import UIKit
 
 class ViewController: GenericTableViewController<ContactCell, Contact> {
 
-    let contacts = [Contact(firstName: "Ángel", lastName: "Ávila", dateOfBirth: "", addresses: [""], phoneNumbers: ["3313610519", "555555555"], emails: ["aangel.aac96@gmail.com", "is697755@iteso.mx", "test@test.com"]),
+    let tintColor = UIColor(white: 0.25, alpha: 1)
+    
+    let contacts = [Contact(firstName: "Ángel", lastName: "Ávila", dateOfBirth: "June 15, 1996", addresses: ["Unidad Nacional 3165"], phoneNumbers: ["3313610519", "555555555"], emails: ["aangel.aac96@gmail.com", "is697755@iteso.mx", "test@test.com"]),
                     Contact(firstName: "Marcel", lastName: "Castiello"),
                     Contact(firstName: "Sandy", lastName: "Matthew")]
     
@@ -51,9 +53,11 @@ class ViewController: GenericTableViewController<ContactCell, Contact> {
 
     fileprivate func setupNavigationItem() {
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addButtonTapped))
+        addButton.tintColor = tintColor
         self.navigationItem.rightBarButtonItem = addButton
         
         let updateButton = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(updateButtonTapped))
+        updateButton.tintColor = tintColor
         self.navigationItem.leftBarButtonItem = updateButton
     }
 }
