@@ -215,6 +215,23 @@ class ContactDetailsVC: UIViewController {
     // MARK: - Actions
     
     @objc fileprivate func dismissButtonTapped() {
+        
+        if isAddingAContact && (firstNameTextField.hasText || lastNameTextField.hasText) {
+            let alert = UIAlertController(title: "Discarding new contact", message: "Do you wish to discard your changes or save them?", preferredStyle: .alert)
+            
+            alert.addAction(UIAlertAction(title: "Discard", style: .destructive, handler: { _ in
+                self.dismiss(animated: true, completion: nil)
+            }))
+            
+            alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { _ in
+                self.saveButtonTapped()
+            }))
+            
+            self.present(alert, animated: true)
+            
+            return
+        }
+        
         dismiss(animated: true, completion: nil)
     }
     
